@@ -1,4 +1,14 @@
+ARG OPENVDS_IMAGE=openvds
+ARG OPENVDS_REPO=https://community.opengroup.org/osdu/platform/domain-data-mgmt-services/seismic/open-vds.git
+ARG OPENVDS_VERSION=cbcd7b6163768118805dbcd080a5b0e386b82a6a
+
+FROM alpine as utils
+ARG OPENVDS_VERSION
+RUN echo $OPENVDS_VERSION > /openvds_version.txt
+
 FROM golang:1.18-alpine3.16 as openvds
+ARG OPENVDS_REPO
+ARG OPENVDS_VERSION
 RUN apk --no-cache add \
     curl \
     git \
@@ -13,9 +23,9 @@ RUN apk --no-cache add \
     util-linux-dev
 
 WORKDIR /
-RUN git clone https://community.opengroup.org/osdu/platform/domain-data-mgmt-services/seismic/open-vds.git
+RUN git clone $OPENVDS_REPO
 WORKDIR /open-vds
-RUN git checkout cbcd7b6163768118805dbcd080a5b0e386b82a6a
+RUN git checkout $OPENVDS_VERSION
 
 RUN cmake -S . \
     -B build \
@@ -33,7 +43,7 @@ RUN cmake -S . \
 RUN cmake --build build   --config Release  --target install  -j 8 --verbose
 
 
-FROM openvds as builder
+FROM $OPENVDS_IMAGE as builder
 WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download && go mod verify
