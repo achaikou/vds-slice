@@ -167,6 +167,25 @@ int subvolume_free(Context* ctx, SurfaceBoundedSubVolume* subvolume) {
     }
 }
 
+int shape(
+    Context* ctx,
+    DataSource* datasource,
+    CubeShape* out
+) {
+    try {
+        if (not out)        throw detail::nullptr_error("Invalid out pointer");
+        if (not datasource) throw detail::nullptr_error("Invalid datasource");
+
+        MetadataHandle const& metadata = datasource->get_metadata();
+        out->ilines  = metadata.iline().nsamples();
+        out->xlines  = metadata.xline().nsamples();
+        out->samples = metadata.sample().nsamples();
+        return STATUS_OK;
+    } catch (...) {
+        return handle_exception(ctx, std::current_exception());
+    }
+}
+
 int slice(
     Context* ctx,
     DataSource* datasource,

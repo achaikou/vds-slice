@@ -93,6 +93,20 @@ int subvolume_free(
     SurfaceBoundedSubVolume* subvolume
 );
 
+struct CubeShape {
+    size_t ilines;
+    size_t xlines;
+    size_t samples;
+};
+
+typedef struct CubeShape CubeShape;
+
+int shape(
+    Context* ctx,
+    DataSource* datasource,
+    CubeShape* out
+);
+
 int metadata(
     Context* ctx,
     DataSource* datasource,

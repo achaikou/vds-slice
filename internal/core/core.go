@@ -421,6 +421,26 @@ func NewDSHandle(conn Connection) (DSHandle, error) {
 	return DSHandle{dataSource: dataSource, ctx: cctx}, nil
 }
 
+type CubeShape struct {
+	Ilines  int
+	Xlines  int
+	Samples int
+}
+
+func (v DSHandle) Shape() (CubeShape, error) {
+	var shape C.struct_CubeShape
+	cErr := C.shape(v.context(), v.DataSource(), &shape)
+	if err := v.Error(cErr); err != nil {
+		return CubeShape{}, err
+	}
+
+	return CubeShape{
+		Ilines:  int(shape.ilines),
+		Xlines:  int(shape.xlines),
+		Samples: int(shape.samples),
+	}, nil
+}
+
 func (v DSHandle) GetMetadata() ([]byte, error) {
 	var result C.struct_response
 	cerr := C.metadata(v.context(), v.DataSource(), &result)
