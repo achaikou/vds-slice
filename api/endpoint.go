@@ -525,6 +525,38 @@ func (h *HttpRoutes) FencePost(ctx *gin.Context) {
 	h.fence(ctx, &request)
 }
 
+func (h *HttpRoutes) metadata(ctx *gin.Context, request MetadataRequest) {
+	prepareRequestLogging(ctx, request)
+	conn, err := h.MakeVdsConnection(request.Vds, request.Sas)
+	if abortOnError(ctx, err) {
+		return
+	}
+
+	handle, err := core.NewDSHandle(conn)
+	if abortOnError(ctx, err) {
+		return
+	}
+	defer handle.Close()
+
+	buffer, err := handle.GetMetadata()
+	if abortOnError(ctx, err) {
+		return
+	}
+
+	ctx.Data(http.StatusOK, "application/json", buffer)
+}
+
+func (h *HttpRoutes) MetadataPost(ctx *gin.Context) {
+
+	var request MetadataRequest
+	err := parsePostRequest(ctx, &request)
+	if abortOnError(ctx, err) {
+		return
+	}
+
+	h.metadata(ctx, request)
+}
+
 func NewHttpRoutes(conn core.ConnectionMaker, routes *pb.Scheduler) *HttpRoutes {
 	return &HttpRoutes{ MakeVdsConnection: conn, scheduler: routes }
 }

@@ -27,6 +27,7 @@ message Info {
     string pid = 1;
     int32 part = 2;
     int32 parts = 3;
+    int32 startSampleN = 4;
 }
 
 message Connection {

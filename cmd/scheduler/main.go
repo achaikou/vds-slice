@@ -60,7 +60,7 @@ func parseopts() opts {
 	opts := opts{
 		storageAccounts: parseAsString("",                 os.Getenv("VDSSLICE_STORAGE_ACCOUNTS")),
 		port:            parseAsUint32(8080,               os.Getenv("VDSSLICE_PORT")),
-		jobs:            parseAsUint32(32,                 os.Getenv("VDSSLICE_JOBS")),
+		jobs:            parseAsUint32(64,                 os.Getenv("VDSSLICE_JOBS")),
 		workerPorts:     parseAsString("8082",             os.Getenv("VDSSLICE_WORKER_PORTS")),
 		workerAddress:   parseAsString("http://localhost", os.Getenv("VDSSLICE_WORKER_ADDRESS")),
 	}
@@ -201,6 +201,7 @@ func main() {
 	seismic.Use(api.ErrorHandler)
 
 	seismic.POST("fence", httpRoutes.FencePost)
+	seismic.POST("metadata", httpRoutes.MetadataPost)
 	
 	app.Run(fmt.Sprintf(":%d", opts.port))
 }

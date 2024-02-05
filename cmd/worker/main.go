@@ -90,11 +90,12 @@ func listen(ports []string) (net.Listener, error) {
 	for _, port := range ports {
 		listener, err := net.Listen("tcp", port)
 		if err == nil {
+			log.Printf("My name is worker and I am running on port %v", port)
 			return listener, nil
 		}
 	}
 
-	return nil, errors.New("No available ports")
+	return nil, errors.New("no available ports")
 }
 
 func main() {

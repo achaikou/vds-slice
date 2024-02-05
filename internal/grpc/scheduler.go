@@ -31,6 +31,7 @@ func newFenceRequest(
 	pid string,
 	part int32,
 	parts int32,
+	startSampleN int32,
 	url string,
 	sas string,
 	interpolation int32,
@@ -50,6 +51,7 @@ func newFenceRequest(
 			Pid:  pid,
 			Part: part,
 			Parts: parts,
+			StartSampleN: startSampleN,
 		},
 		Connection: &Connection{
 			Url: url,
@@ -101,30 +103,15 @@ func (g *Scheduler) Fence(
 	shape core.CubeShape,
 ) ([]byte, error) {
 	pid := MakePID()
-
-	/** Number of parts / splitting strategy
-	 *
-	 * Currently the request (i.e. the coordinate list) is divided into 4
-	 * equally large parts. This is in many ways suboptimal.
-	 *
-	 * Firstly, the number 4 is chosen at random. Finding a one-fit all number
-	 * here is unlikely and we woudl probably benefit from being a function of
-     * the request size.
-     *
-	 * Secondly, splitting into even pieces means there is a great likelyhood
-	 * that multiple workers end up fetching the same chunks. Too avoid this we
-	 * need a better splitting strategy, based on the chunk layout. I.e. what
-	 * we did in oneseismic.
-	 */
 	var nParts = g.jobs
 
-	errors    := make(chan error,  nParts)
+	localErrors    := make(chan error,  nParts)
 	responses := make(chan *FenceResponse, nParts) 
 	
 	nTraces := len(coordinates)
 	nTracesPerPart := int(math.Ceil(float64(nTraces) / float64(nParts)))
 
-	partSize := nTracesPerPart * shape.Samples * 4
+	//partSize := nTracesPerPart * shape.Samples * 4
 
 	// Split request into sub-request and send them of one by one in seperate goroutines
 	remaining := nTraces;
@@ -134,10 +121,13 @@ func (g *Scheduler) Fence(
 		size := min(nTracesPerPart, remaining)
 		to := from + size
 
+		startSampleN := from * shape.Samples
+
 		req := newFenceRequest(
 			pid,
 			int32(partN),
 			int32(nParts - 1), // parts are zero indexed
+			int32(startSampleN),
 			url,
 			sas,
 			interpolation,
@@ -147,7 +137,7 @@ func (g *Scheduler) Fence(
 
 		go g.sendFenceSubRequest(
 			req,
-			errors,
+			localErrors,
 			responses,
 		)
 
@@ -158,12 +148,12 @@ func (g *Scheduler) Fence(
 
 	// Collect all responses and copy into output buffer
 	out := make([]byte, nTraces * shape.Samples * 4)
-	for i := 0; i < nParts; i++ { 
+	for i := 0; i < partN; i++ { 
 		select {
-		case err := <-errors: return nil, err
+		case err := <-localErrors: return nil, err
 		case resp := <-responses: 
 			logmsg(resp.Info, "collecting response from worker...")
-			start := resp.Info.Part * int32(partSize)
+			start := resp.Info.StartSampleN * 4
 			stop  := int(start) + len(resp.Fence)
 			copy(out[start : stop], resp.Fence)
 		}
@@ -171,6 +161,7 @@ func (g *Scheduler) Fence(
 
 	return out, nil
 }
+
 
 func NewScheduler(client OneseismicClient, jobs int) *Scheduler {
 	return &Scheduler{ client: client, jobs: jobs}

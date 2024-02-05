@@ -1,78 +1,13 @@
 apiVersion: radix.equinor.com/v1
 kind: RadixApplication
 metadata:
-  name: oneseismictest
+  name: oneseismictest_grpc
 spec:
   environments:
-    - name: dev
-      build:
-        from: radix
-    - name: test
-      build:
-        from: test
     - name: grpc
       build:
         from: grpc
   components:
-    - name: server
-      dockerfileName: Dockerfile
-      ports:
-        - name: http
-          port: 8080
-        - name: metrics
-          port: 8081
-      publicPort: http
-      monitoringConfig:
-        portName: metrics
-      identity:
-        azure:
-          clientId: fd162526-89a0-448a-979f-655c0717db52
-      environmentConfig:
-        - environment: dev
-          variables:
-            VDSSLICE_PORT: 8080
-            VDSSLICE_CACHE_SIZE: 512 # MB
-            VDSSLICE_METRICS: true
-            VDSSLICE_METRICS_PORT: 8081
-          secretRefs:
-            azureKeyVaults:
-              - name: S067-RadixKeyvault
-                useAzureIdentity: true
-                items:
-                  - name: playground-dev-allowlist
-                    envVar: VDSSLICE_STORAGE_ACCOUNTS
-          monitoring: true
-          resources:
-            requests:
-              memory: "6144Mi"
-              cpu: "4000m"
-          horizontalScaling:
-            minReplicas: 1
-            maxReplicas: 3
-        - environment: test
-          variables:
-            VDSSLICE_PORT: 8080
-            VDSSLICE_CACHE_SIZE: 256 # MB
-            VDSSLICE_METRICS: true
-            VDSSLICE_METRICS_PORT: 8081
-          secretRefs:
-            azureKeyVaults:
-              - name: S067-RadixKeyvault
-                useAzureIdentity: true
-                items:
-                  - name: playground-test-allowlist
-                    envVar: VDSSLICE_STORAGE_ACCOUNTS
-          monitoring: true
-          resources:
-            requests:
-              memory: "6144Mi"
-              cpu: "2000m"
-          horizontalScaling:
-            minReplicas: 1
-            maxReplicas: 3
-        - environment: grpc
-          enabled: false
-
     - name: scheduler
       dockerfileName: Dockerfile.scheduler
       ports:
@@ -86,7 +21,7 @@ spec:
             VDSSLICE_CACHE_SIZE: 0 # MB
             VDSSLICE_JOBS: 64
             VDSSLICE_WORKER_ADDRESSES: "worker1:8090,worker2:8090,worker3:8090,worker4:8090"
-            VDSSLICE_STORAGE_ACCOUNTS: "https://vdsbenchmark.blob.core.windows.net"
+            VDSSLICE_STORAGE_ACCOUNTS: "https://onevdstest.blob.core.windows.net, https://vdsbenchmark.blob.core.windows.net"
           resources:
             requests:
               memory: "6144Mi"
@@ -94,10 +29,6 @@ spec:
           horizontalScaling:
             minReplicas: 1
             maxReplicas: 1
-        - environment: dev
-          enabled: false
-        - environment: test
-          enabled: false
     
     - name: worker1
       dockerfileName: Dockerfile.worker
@@ -110,15 +41,11 @@ spec:
             VDSSLICE_WORKER_PORTS: ":8090"
           resources:
             requests:
-              memory: "6144Mi"
-              cpu: "6000m"
+              memory: "1024Mi"
+              cpu: "1000m"
           horizontalScaling:
             minReplicas: 1
             maxReplicas: 1
-        - environment: dev
-          enabled: false
-        - environment: test
-          enabled: false
     
     - name: worker2
       dockerfileName: Dockerfile.worker
@@ -131,15 +58,11 @@ spec:
             VDSSLICE_WORKER_PORTS: ":8090"
           resources:
             requests:
-              memory: "6144Mi"
-              cpu: "6000m"
+              memory: "1024Mi"
+              cpu: "1000m"
           horizontalScaling:
             minReplicas: 1
             maxReplicas: 1
-        - environment: dev
-          enabled: false
-        - environment: test
-          enabled: false
     
     - name: worker3
       dockerfileName: Dockerfile.worker
@@ -152,16 +75,12 @@ spec:
             VDSSLICE_WORKER_PORTS: ":8090"
           resources:
             requests:
-              memory: "6144Mi"
-              cpu: "6000m"
+              memory: "1024Mi"
+              cpu: "1000m"
           horizontalScaling:
             minReplicas: 1
             maxReplicas: 1
-        - environment: dev
-          enabled: false
-        - environment: test
-          enabled: false
-    
+
     - name: worker4
       dockerfileName: Dockerfile.worker
       ports:
@@ -173,12 +92,9 @@ spec:
             VDSSLICE_WORKER_PORTS: ":8090"
           resources:
             requests:
-              memory: "6144Mi"
-              cpu: "6000m"
+              memory: "1024Mi"
+              cpu: "1000m"
           horizontalScaling:
             minReplicas: 1
             maxReplicas: 1
-        - environment: dev
-          enabled: false
-        - environment: test
-          enabled: false
+
