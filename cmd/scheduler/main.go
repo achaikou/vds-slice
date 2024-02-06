@@ -137,7 +137,7 @@ func parsePorts(in string, addr string) ([]string, error) {
 		}
 
 		if len(portRange) != 2 {
-			return nil, errors.New("Invalid range")
+			return nil, errors.New("invalid range")
 		}
 
 		begin, err := strconv.ParseUint(portRange[0], 10, 32)
