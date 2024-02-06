@@ -62,7 +62,7 @@ func parseopts() opts {
 		port:            parseAsUint32(8080,               os.Getenv("VDSSLICE_PORT")),
 		jobs:            parseAsUint32(64,                 os.Getenv("VDSSLICE_JOBS")),
 		workerPorts:     parseAsString("8082",             os.Getenv("VDSSLICE_WORKER_PORTS")),
-		workerAddress:   parseAsString("http://localhost", os.Getenv("VDSSLICE_WORKER_ADDRESS")),
+		workerAddress:   parseAsString("http://localhost", os.Getenv("VDSSLICE_WORKER_ADDRESSES")),
 	}
 
 	getopt.FlagLong(
@@ -112,7 +112,7 @@ func parseopts() opts {
 		0,
 		"Address of the workers. " +
 		"Defaults to http://localhost.\n" +
-		"Can also be set by environment variable 'VDSSLICE_WORKER_ADDRESS'",
+		"Can also be set by environment variable 'VDSSLICE_WORKER_ADDRESSES'",
 		"string",
 	)
 
