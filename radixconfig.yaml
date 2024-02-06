@@ -6,7 +6,7 @@ spec:
   environments:
     - name: grpc
       build:
-        from: grpc
+        from: grpc_investigation
   components:
     - name: scheduler
       dockerfileName: Dockerfile.scheduler
