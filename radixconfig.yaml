@@ -1,7 +1,7 @@
 apiVersion: radix.equinor.com/v1
 kind: RadixApplication
 metadata:
-  name: oneseismictest_grpc
+  name: oneseismictest-grpc
 spec:
   environments:
     - name: grpc
