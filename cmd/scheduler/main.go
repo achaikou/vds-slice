@@ -132,8 +132,8 @@ func parsePorts(in string, addr string) ([]string, error) {
 	for _, sequence := range strings.Split(in, ",") {
 		portRange := strings.Split(sequence, ":")
 
-		if len(portRange) == 1 {
-			portRange = append(portRange, portRange[0])
+		if portRange[0] == "" {
+			portRange = []string{portRange[1], portRange[1]}
 		}
 
 		if len(portRange) != 2 {
@@ -157,10 +157,14 @@ func parsePorts(in string, addr string) ([]string, error) {
 	return out, nil
 }
 
+func parseAddress(addr string) ([]string, error) {
+	return strings.Split(addr, ","), nil
+}
+
 func main() {
 	opts := parseopts()
 
-	ports, err := parsePorts(opts.workerPorts, opts.workerAddress)
+	ports, err := parseAddress(opts.workerAddress)
 	if err != nil {
 		log.Fatalf(
 			"Invalid value for option 'addresses': (was: %v), (err: %v)",

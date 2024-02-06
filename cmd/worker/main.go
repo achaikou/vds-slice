@@ -61,8 +61,8 @@ func parsePorts(in string, addr string) ([]string, error) {
 	for _, sequence := range strings.Split(in, ",") {
 		portRange := strings.Split(sequence, ":")
 
-		if len(portRange) == 1 {
-			portRange = append(portRange, portRange[0])
+		if portRange[0] == "" {
+			portRange = []string{portRange[1], portRange[1]}
 		}
 
 		if len(portRange) != 2 {
