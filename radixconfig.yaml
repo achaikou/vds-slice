@@ -20,12 +20,12 @@ spec:
             VDSSLICE_PORT: 8080
             VDSSLICE_CACHE_SIZE: 0 # MB
             VDSSLICE_JOBS: 64
-            VDSSLICE_WORKER_ADDRESSES: "worker1:8090,worker2:8090,worker3:8090,worker4:8090"
+            VDSSLICE_WORKER_ADDRESSES: "worker1:8090,worker2:8090,worker3:8090,worker4:8090,worker5:8090"
             VDSSLICE_STORAGE_ACCOUNTS: "https://onevdstest.blob.core.windows.net, https://vdsbenchmark.blob.core.windows.net"
           resources:
             requests:
-              memory: "6144Mi"
-              cpu: "3000m"
+              memory: "200Mi"
+              cpu: "100m"
           horizontalScaling:
             minReplicas: 1
             maxReplicas: 1
@@ -97,4 +97,22 @@ spec:
           horizontalScaling:
             minReplicas: 1
             maxReplicas: 1
+
+    - name: worker5
+      dockerfileName: Dockerfile.worker
+      ports:
+        - name: http 
+          port: 8090
+      environmentConfig:
+        - environment: grpc
+          variables:
+            VDSSLICE_WORKER_PORTS: ":8090"
+          resources:
+            requests:
+              memory: "1024Mi"
+              cpu: "1000m"
+          horizontalScaling:
+            minReplicas: 2
+            maxReplicas: 2
+
 
