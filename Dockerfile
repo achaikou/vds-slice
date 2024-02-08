@@ -1,23 +1,25 @@
 ARG OPENVDS_IMAGE=openvds
-ARG VDSSLICE_BASEIMAGE=golang:1.20-alpine3.16
+ARG VDSSLICE_BASEIMAGE=golang:1.20-bookworm
 FROM ${VDSSLICE_BASEIMAGE} as openvds
-RUN apk --no-cache add \
+
+RUN apt-get update && apt-get install -y \
     curl \
     git \
     g++ \
     gcc \
     make \
     cmake \
-    curl-dev \
-    boost-dev \
+    libcurl4-openssl-dev \
+    libboost-all-dev \
     libxml2-dev \
-    libuv-dev \
-    util-linux-dev
+    libuv1-dev \
+    uuid-dev \
+    libssl-dev
 
 WORKDIR /
 RUN git clone https://community.opengroup.org/osdu/platform/domain-data-mgmt-services/seismic/open-vds.git
 WORKDIR /open-vds
-RUN git checkout cbcd7b6163768118805dbcd080a5b0e386b82a6a
+RUN git checkout 3.3.3
 
 RUN cmake -S . \
     -B build \
@@ -80,22 +82,23 @@ ARG LD_LIBRARY_PATH=/open-vds/Dist/OpenVDS/lib:$LD_LIBRARY_PATH
 RUN GOBIN=/server go install -a ./...
 
 FROM ${VDSSLICE_BASEIMAGE} as runner
-RUN apk --no-cache add \
+
+RUN apt-get update && apt-get install -y \
     g++ \
     gcc \
-    libuv \
-    libcurl \
+    libuv1 \
+    libcurl4-openssl-dev \
     libxml2 \
-    libuuid \
-    boost-log
+    uuid-dev \
+    libboost-log-dev
 
 WORKDIR /server
 COPY --from=installer /open-vds/Dist/OpenVDS/lib/* /open-vds/
 COPY --from=installer /server /server
 COPY --from=installer /src/docs/index.html /server/docs/
 
-RUN addgroup -S -g 1001 radix-non-root-group
-RUN adduser -S -u 1001 -G radix-non-root-group radix-non-root-user
+RUN addgroup --gid 1001 radix-non-root-group
+RUN adduser --gid 1001 --uid 1001 radix-non-root-user
 USER 1001
 
 ENV LD_LIBRARY_PATH=/open-vds:$LD_LIBRARY_PATH
