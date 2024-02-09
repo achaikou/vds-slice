@@ -19,7 +19,7 @@ spec:
           variables:
             VDSSLICE_PORT: 8080
             VDSSLICE_CACHE_SIZE: 0 # MB
-            VDSSLICE_JOBS: 32
+            VDSSLICE_JOBS: 4
             VDSSLICE_WORKER_ADDRESSES: "worker1:8090,worker2:8090,worker3:8090,worker4:8090"
             VDSSLICE_STORAGE_ACCOUNTS: "https://onevdstest.blob.core.windows.net, https://vdsbenchmark.blob.core.windows.net"
           resources:
@@ -42,7 +42,7 @@ spec:
           resources:
             requests:
               memory: "1350Mi"
-              cpu: "500m"
+              cpu: "2000m"
           horizontalScaling:
             minReplicas: 1
             maxReplicas: 1
@@ -59,7 +59,7 @@ spec:
           resources:
             requests:
               memory: "1350Mi"
-              cpu: "500m"
+              cpu: "2000m"
           horizontalScaling:
             minReplicas: 1
             maxReplicas: 1
@@ -76,7 +76,7 @@ spec:
           resources:
             requests:
               memory: "1350Mi"
-              cpu: "500m"
+              cpu: "2000m"
           horizontalScaling:
             minReplicas: 1
             maxReplicas: 1
@@ -93,7 +93,7 @@ spec:
           resources:
             requests:
               memory: "1350Mi"
-              cpu: "500m"
+              cpu: "2000m"
           horizontalScaling:
             minReplicas: 1
             maxReplicas: 1
