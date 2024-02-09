@@ -42,7 +42,7 @@ spec:
           resources:
             requests:
               memory: "1350Mi"
-              cpu: "2000m"
+              cpu: "500m"
           horizontalScaling:
             minReplicas: 1
             maxReplicas: 1
@@ -59,7 +59,7 @@ spec:
           resources:
             requests:
               memory: "1350Mi"
-              cpu: "2000m"
+              cpu: "500m"
           horizontalScaling:
             minReplicas: 1
             maxReplicas: 1
@@ -76,7 +76,7 @@ spec:
           resources:
             requests:
               memory: "1350Mi"
-              cpu: "2000m"
+              cpu: "500m"
           horizontalScaling:
             minReplicas: 1
             maxReplicas: 1
@@ -93,7 +93,7 @@ spec:
           resources:
             requests:
               memory: "1350Mi"
-              cpu: "2000m"
+              cpu: "500m"
           horizontalScaling:
             minReplicas: 1
             maxReplicas: 1
