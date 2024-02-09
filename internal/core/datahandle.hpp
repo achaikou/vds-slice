@@ -1,6 +1,7 @@
 #ifndef VDS_SLICE_DATAHANDLE_HPP
 #define VDS_SLICE_DATAHANDLE_HPP
 
+#include <functional>
 #include <memory>
 #include <string>
 
