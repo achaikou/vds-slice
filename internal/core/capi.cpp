@@ -50,7 +50,7 @@ int handle_exception(Context* ctx, std::exception_ptr eptr) {
         return STATUS_RUNTIME_ERROR;
     }
 
-    return STATUS_OK;
+    return STATUS_OK; //wtf
 }
 
 int single_datasource_new(

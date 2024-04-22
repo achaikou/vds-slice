@@ -12,6 +12,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"sync"
 	"unsafe"
 )
 
@@ -427,15 +428,20 @@ func (v DSHandle) DataSource() *C.struct_DataSource {
 }
 
 func (v DSHandle) context() *C.struct_Context {
+	// many contexts? Otherwise one error would override the other. Is it ok?
+	// can it be that handle exception sets nil? If it does, error can overwrite exceptions
 	return v.ctx
 }
 
 func (v DSHandle) Error(status C.int) error {
+	// check all contexts for error? Return first that's not nil
 	return toError(status, v.context())
 }
 
 func (v DSHandle) Close() error {
 	defer C.context_free(v.ctx)
+
+	// all datahandles must be freed
 
 	cerr := C.datasource_free(v.ctx, v.dataSource)
 	return toError(cerr, v.ctx)
@@ -444,6 +450,36 @@ func (v DSHandle) Close() error {
 func NewDSHandle(connection Connection) (DSHandle, error) {
 	return CreateDSHandle([]Connection{connection}, BinaryOperatorNoOperator)
 }
+
+
+type DatahandlePool struct {
+    pool    []*C.struct_DataSource
+    next    int
+    mu      sync.Mutex
+}
+
+func NewDatahandlePool(maxSize int, connections []Connection, binaryOperator uint32) (*DatahandlePool, error) {
+    pool := make([]*C.struct_DataSource, maxSize)
+    for i := range pool {
+		handle, err := CreateDSHandle(connections, binaryOperator)
+		if err != nil {
+			return nil, err
+		}
+		
+        pool[i] = handle
+    }
+    return &DatahandlePool{pool: pool}, nil
+}
+
+func (p *DatahandlePool) Get() *C.struct_DataSource {
+	
+    p.mu.Lock()
+    defer p.mu.Unlock()
+    obj := p.pool[p.next]
+    p.next = (p.next + 1) % len(p.pool)
+    return obj
+}
+
 
 func contains(elems []string, v string) bool {
 	for _, s := range elems {
