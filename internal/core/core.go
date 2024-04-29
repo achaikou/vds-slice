@@ -309,7 +309,9 @@ func GetAttributeType(attribute string) (int, error) {
 
 /** Translate C status codes into Go error types */
 func toError(status C.int, ctx *C.Context) error {
-	if status == C.STATUS_OK {
+	if status == C.STATUS_OK { //so error code and context together are important. Only error and correct context together give correct result
+		// so if I take 1 context that gets overwritten from each goroutine, status and context won't correspond to each other
+		// so there should be one context in each thread
 		return nil
 	}
 
@@ -430,6 +432,8 @@ func (v DSHandle) DataSource() *C.struct_DataSource {
 func (v DSHandle) context() *C.struct_Context {
 	// many contexts? Otherwise one error would override the other. Is it ok?
 	// can it be that handle exception sets nil? If it does, error can overwrite exceptions
+
+	// a on komu nahren nuzhen? Nu s nim proshe esli ne nado na thready razbiwat
 	return v.ctx
 }
 
@@ -447,22 +451,23 @@ func (v DSHandle) Close() error {
 	return toError(cerr, v.ctx)
 }
 
-func NewDSHandle(connection Connection) (DSHandle, error) {
+func NewDSHandle(connection Connection) (DSHandle, error) { ///WTF?? Why do we have two constructors 
 	return CreateDSHandle([]Connection{connection}, BinaryOperatorNoOperator)
 }
 
 
 type DatahandlePool struct {
-    pool    []*C.struct_DataSource
+    pool    []DSHandle
     next    int
     mu      sync.Mutex
 }
 
 func NewDatahandlePool(maxSize int, connections []Connection, binaryOperator uint32) (*DatahandlePool, error) {
-    pool := make([]*C.struct_DataSource, maxSize)
+    pool := make([]DSHandle, maxSize)
     for i := range pool {
 		handle, err := CreateDSHandle(connections, binaryOperator)
 		if err != nil {
+			// if there is an error on creation of one of handles, the other handles are not deleted. memory is not freed.
 			return nil, err
 		}
 		
@@ -471,7 +476,20 @@ func NewDatahandlePool(maxSize int, connections []Connection, binaryOperator uin
     return &DatahandlePool{pool: pool}, nil
 }
 
-func (p *DatahandlePool) Get() *C.struct_DataSource {
+func (p *DatahandlePool) Close() error {
+	for _, dh := range p.pool {
+		err := dh.Close()
+		// try to close everything or what? Return immediately with other resources not closed? cause panic?
+		// this is not user's error. this is where we F**ed up
+		if err != nil {
+			return err
+		}
+		  
+    }
+	return nil
+}
+
+func (p *DatahandlePool) Get() DSHandle {
 	
     p.mu.Lock()
     defer p.mu.Unlock()

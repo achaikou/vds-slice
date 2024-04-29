@@ -208,7 +208,8 @@ func max(a, b int) int {
 	return b
 }
 
-func (v DSHandle) getAttributes(
+//still should be on DSHandle
+func (v *DatahandlePool) getAttributes(
 	cReferenceSurface cRegularSurface,
 	cTopSurface cRegularSurface,
 	cBottomSurface cRegularSurface,
@@ -221,21 +222,20 @@ func (v DSHandle) getAttributes(
 	var hsize = nrows * ncols
 
 	var cSubVolume *C.struct_SurfaceBoundedSubVolume
-	var cCtx = C.context_new()
-	defer C.context_free(cCtx)
+	dhandle := v.Get()
 	cerr := C.subvolume_new(
-		cCtx,
-		v.DataSource(),
+		dhandle.context(),
+		dhandle.dataSource,
 		cReferenceSurface.get(),
 		cTopSurface.get(),
 		cBottomSurface.get(),
 		&cSubVolume,
 	)
 
-	if err := toError(cerr, cCtx); err != nil {
+	if err := toError(cerr, dhandle.ctx); err != nil {
 		return nil, err
 	}
-	defer C.subvolume_free(cCtx, cSubVolume)
+	defer C.subvolume_free(dhandle.ctx, cSubVolume)
 
 	cAttributes := make([]C.enum_attribute, len(targetAttributes))
 	for i := range targetAttributes {
@@ -269,12 +269,11 @@ func (v DSHandle) getAttributes(
 	for from < hsize {
 		guard <- struct{}{} // block if guard channel is filled
 		go func(from, to int) {
-			var cCtx = C.context_new()
-			defer C.context_free(cCtx)
+			dhandle := v.Get()
 
 			cerr_attributes := C.attribute(
-				cCtx,
-				v.DataSource(),
+				dhandle.ctx,
+				dhandle.dataSource,
 				cSubVolume,
 				C.enum_interpolation_method(interpolation),
 				&cAttributes[0],
@@ -285,7 +284,7 @@ func (v DSHandle) getAttributes(
 				unsafe.Pointer(&buffer[0]),
 			)
 
-			errs <- toError(cerr_attributes, cCtx)
+			errs <- toError(cerr_attributes, dhandle.ctx)
 			<-guard
 
 		}(from, to)
