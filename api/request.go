@@ -87,7 +87,7 @@ type DataRequest interface {
 	toString() (string, error)
 	hash() (string, error)
 	credentials() ([]string, []string, string)
-	execute(handle core.DSHandle) (data [][]byte, metadata []byte, err error)
+	execute(handle *core.DatahandlePool) (data [][]byte, metadata []byte, err error)
 }
 
 type Stringable interface {

@@ -10,6 +10,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func NewPool(connection Connection) *DatahandlePool{
+	pool, _ := NewDatahandlePool(4, []Connection{connection}, BinaryOperatorNoOperator)
+	return pool
+}
+
 func TestSurfaceUnalignedWithSeismic(t *testing.T) {
 	const above = float32(4.0)
 	const below = float32(4.0)
@@ -46,9 +51,9 @@ func TestSurfaceUnalignedWithSeismic(t *testing.T) {
 
 	interpolationMethod, _ := GetInterpolationMethod("nearest")
 
-	handle, _ := NewDSHandle(samples10)
-	defer handle.Close()
-	buf, err := handle.GetAttributesAlongSurface(
+	pool := NewPool(samples10)
+	defer pool.Close()
+	buf, err := pool.GetAttributesAlongSurface(
 		surface,
 		above,
 		below,
@@ -178,9 +183,9 @@ func TestSurfaceWindowVerticalBounds(t *testing.T) {
 	for _, testcase := range testcases {
 		surface := samples10Surface(testcase.values)
 		interpolationMethod, _ := GetInterpolationMethod("nearest")
-		handle, _ := NewDSHandle(samples10)
-		defer handle.Close()
-		_, boundsErr := handle.GetAttributesAlongSurface(
+		pool := NewPool(samples10)
+		defer pool.Close()
+		_, boundsErr := pool.GetAttributesAlongSurface(
 			surface,
 			testcase.above,
 			testcase.below,
@@ -325,9 +330,9 @@ func TestSurfaceHorizontalBounds(t *testing.T) {
 			Yinc:      float32(yinc),
 			FillValue: &fillValue,
 		}
-		handle, _ := NewDSHandle(samples10)
-		defer handle.Close()
-		buf, err := handle.GetAttributesAlongSurface(
+		pool := NewPool(samples10)
+		defer pool.Close()
+		buf, err := pool.GetAttributesAlongSurface(
 			surface,
 			above,
 			below,
@@ -410,9 +415,9 @@ func TestAttribute(t *testing.T) {
 	const below = float32(8.0)
 	const stepsize = float32(4.0)
 
-	handle, _ := NewDSHandle(samples10)
-	defer handle.Close()
-	buf, err := handle.GetAttributesAlongSurface(
+	pool := NewPool(samples10)
+	defer pool.Close()
+	buf, err := pool.GetAttributesAlongSurface(
 		surface,
 		above,
 		below,
@@ -462,9 +467,9 @@ func TestAttributeMedianForEvenSampleValue(t *testing.T) {
 	const below = float32(4.0)
 	const stepsize = float32(4.0)
 
-	handle, _ := NewDSHandle(samples10)
-	defer handle.Close()
-	buf, err := handle.GetAttributesAlongSurface(
+	pool := NewPool(samples10)
+	defer pool.Close()
+	buf, err := pool.GetAttributesAlongSurface(
 		surface,
 		above,
 		below,
@@ -536,9 +541,9 @@ func TestAttributesAboveBelowStepSizeIgnoredForSampleValue(t *testing.T) {
 	surface := samples10Surface(values)
 
 	for _, testCase := range testCases {
-		handle, _ := NewDSHandle(samples10)
-		defer handle.Close()
-		buf, err := handle.GetAttributesAlongSurface(
+		pool := NewPool(samples10)
+		defer pool.Close()
+		buf, err := pool.GetAttributesAlongSurface(
 			surface,
 			testCase.above,
 			testCase.below,
@@ -657,9 +662,9 @@ func TestAttributeSubsamplingAligned(t *testing.T) {
 	surface := samples10Surface(values)
 
 	for _, testCase := range testCases {
-		handle, _ := NewDSHandle(samples10)
-		defer handle.Close()
-		buf, err := handle.GetAttributesAlongSurface(
+		pool := NewPool(samples10)
+		defer pool.Close()
+		buf, err := pool.GetAttributesAlongSurface(
 			surface,
 			above,
 			below,
@@ -743,9 +748,9 @@ func TestAttributesUnalignedAndSubsampled(t *testing.T) {
 
 	surface := samples10Surface(values)
 
-	handle, _ := NewDSHandle(samples10)
-	defer handle.Close()
-	buf, err := handle.GetAttributesAlongSurface(
+	pool := NewPool(samples10)
+	defer pool.Close()
+	buf, err := pool.GetAttributesAlongSurface(
 		surface,
 		above,
 		below,
@@ -852,9 +857,9 @@ func TestAttributesUnaligned(t *testing.T) {
 
 		surface := samples10Surface(values)
 
-		handle, _ := NewDSHandle(samples10)
-		defer handle.Close()
-		buf, err := handle.GetAttributesAlongSurface(
+		pool := NewPool(samples10)
+		defer pool.Close()
+		buf, err := pool.GetAttributesAlongSurface(
 			surface,
 			above,
 			below,
@@ -905,9 +910,9 @@ func TestAttributesSupersampling(t *testing.T) {
 
 	surface := samples10Surface(values)
 
-	handle, _ := NewDSHandle(samples10)
-	defer handle.Close()
-	buf, err := handle.GetAttributesAlongSurface(
+	pool := NewPool(samples10)
+	defer pool.Close()
+	buf, err := pool.GetAttributesAlongSurface(
 		surface,
 		above,
 		below,
@@ -954,9 +959,9 @@ func TestAttributesEverythingUnaligned(t *testing.T) {
 
 	surface := samples10Surface(values)
 
-	handle, _ := NewDSHandle(samples10)
-	defer handle.Close()
-	buf, err := handle.GetAttributesAlongSurface(
+	pool := NewPool(samples10)
+	defer pool.Close()
+	buf, err := pool.GetAttributesAlongSurface(
 		surface,
 		above,
 		below,
@@ -1011,9 +1016,9 @@ func TestInvalidAboveBelow(t *testing.T) {
 	for _, testcase := range testcases {
 		surface := samples10Surface(values)
 		interpolationMethod, _ := GetInterpolationMethod("nearest")
-		handle, _ := NewDSHandle(samples10)
-		defer handle.Close()
-		_, boundsErr := handle.GetAttributesAlongSurface(
+		pool := NewPool(samples10)
+		defer pool.Close()
+		_, boundsErr := pool.GetAttributesAlongSurface(
 			surface,
 			testcase.above,
 			testcase.below,
@@ -1044,9 +1049,9 @@ func TestAttributeMetadata(t *testing.T) {
 		},
 	}
 
-	handle, _ := NewDSHandle(well_known)
-	defer handle.Close()
-	buf, err := handle.GetAttributeMetadata(values)
+	pool := NewPool(well_known)
+	defer pool.Close()
+	buf, err := pool.GetAttributeMetadata(values)
 	require.NoErrorf(t, err, "Failed to retrieve attribute metadata, err %v", err)
 
 	var meta AttributeMetadata
@@ -1121,12 +1126,12 @@ func TestAttributeBetweenSurfaces(t *testing.T) {
 
 	interpolationMethod, _ := GetInterpolationMethod("nearest")
 
-	handle, _ := NewDSHandle(samples10)
-	defer handle.Close()
+	pool := NewPool(samples10)
+	defer pool.Close()
 
 	for _, testcase := range testcases {
 		expected["samplevalue"] = testcase.expectedSamplevalue
-		buf, err := handle.GetAttributesBetweenSurfaces(
+		buf, err := pool.GetAttributesBetweenSurfaces(
 			testcase.primary,
 			testcase.secondary,
 			stepsize,
@@ -1172,10 +1177,10 @@ func TestAttributesInconsistentLength(t *testing.T) {
 	goodSurface := samples10Surface(goodValues)
 	badSurface := samples10Surface(badValues)
 
-	handle, _ := NewDSHandle(samples10)
-	defer handle.Close()
+	pool := NewPool(samples10)
+	defer pool.Close()
 
-	_, err := handle.GetAttributesAlongSurface(
+	_, err := pool.GetAttributesAlongSurface(
 		badSurface,
 		above,
 		below,
@@ -1185,7 +1190,7 @@ func TestAttributesInconsistentLength(t *testing.T) {
 	)
 	require.ErrorContains(t, err, errmsg, err)
 
-	_, err = handle.GetAttributesBetweenSurfaces(
+	_, err = pool.GetAttributesBetweenSurfaces(
 		badSurface,
 		goodSurface,
 		stepsize,
@@ -1194,7 +1199,7 @@ func TestAttributesInconsistentLength(t *testing.T) {
 	)
 	require.ErrorContains(t, err, errmsg, err)
 
-	_, err = handle.GetAttributesBetweenSurfaces(
+	_, err = pool.GetAttributesBetweenSurfaces(
 		goodSurface,
 		badSurface,
 		stepsize,
@@ -1215,10 +1220,10 @@ func TestAttributesAllFill(t *testing.T) {
 	fillSurface := samples10Surface(fillValues)
 	expected := []float32{fillValue, fillValue, fillValue, fillValue, fillValue, fillValue}
 
-	handle, _ := NewDSHandle(samples10)
-	defer handle.Close()
+	pool := NewPool(samples10)
+	defer pool.Close()
 
-	bufAlong, err := handle.GetAttributesAlongSurface(
+	bufAlong, err := pool.GetAttributesAlongSurface(
 		fillSurface,
 		above,
 		below,
@@ -1231,7 +1236,7 @@ func TestAttributesAllFill(t *testing.T) {
 		err,
 	)
 
-	bufBetween, err := handle.GetAttributesBetweenSurfaces(
+	bufBetween, err := pool.GetAttributesBetweenSurfaces(
 		fillSurface,
 		fillSurface,
 		stepsize,
@@ -1270,10 +1275,10 @@ func TestAttributesOnSamplesNearTraceBoundary(t *testing.T) {
 
 	expected := []float32{-3, 3.5, 5.5, 13.5, 12.5, -12.5}
 
-	handle, _ := NewDSHandle(samples10)
-	defer handle.Close()
+	pool := NewPool(samples10)
+	defer pool.Close()
 
-	buf, err := handle.GetAttributesBetweenSurfaces(
+	buf, err := pool.GetAttributesBetweenSurfaces(
 		topSurface,
 		bottomSurface,
 		stepsize,

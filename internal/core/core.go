@@ -467,6 +467,11 @@ func NewDatahandlePool(maxSize int, connections []Connection, binaryOperator uin
     for i := range pool {
 		handle, err := CreateDSHandle(connections, binaryOperator)
 		if err != nil {
+			for j := 0; j < i; j++ {
+				//ignore the errors on close, we already have some weird problem on creation
+				pool[j].Close()
+				
+			}
 			// if there is an error on creation of one of handles, the other handles are not deleted. memory is not freed.
 			return nil, err
 		}
@@ -477,15 +482,19 @@ func NewDatahandlePool(maxSize int, connections []Connection, binaryOperator uin
 }
 
 func (p *DatahandlePool) Close() error {
+	var errors []error
 	for _, dh := range p.pool {
 		err := dh.Close()
 		// try to close everything or what? Return immediately with other resources not closed? cause panic?
 		// this is not user's error. this is where we F**ed up
 		if err != nil {
-			return err
+			errors = append(errors, err)
 		}
 		  
     }
+	if len(errors) > 0 {
+	    return errors[0]
+	}
 	return nil
 }
 

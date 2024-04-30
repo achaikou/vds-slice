@@ -11,7 +11,8 @@ import (
 	"unsafe"
 )
 
-func (v DSHandle) GetAttributeMetadata(data [][]float32) ([]byte, error) {
+func (p *DatahandlePool) GetAttributeMetadata(data [][]float32) ([]byte, error) {
+	v := p.Get()
 	var result C.struct_response
 	cerr := C.attribute_metadata(
 		v.context(),
@@ -31,7 +32,7 @@ func (v DSHandle) GetAttributeMetadata(data [][]float32) ([]byte, error) {
 	return buf, nil
 }
 
-func (v DSHandle) GetAttributesAlongSurface(
+func (v *DatahandlePool) GetAttributesAlongSurface(
 	referenceSurface RegularSurface,
 	above float32,
 	below float32,
@@ -39,7 +40,7 @@ func (v DSHandle) GetAttributesAlongSurface(
 	attributes []string,
 	interpolation int,
 ) ([][]byte, error) {
-	targetAttributes, err := v.normalizeAttributes(attributes)
+	targetAttributes, err := normalizeAttributes(attributes)
 	if err != nil {
 		return nil, err
 	}
@@ -100,14 +101,14 @@ func (v DSHandle) GetAttributesAlongSurface(
 	)
 }
 
-func (v DSHandle) GetAttributesBetweenSurfaces(
+func (v *DatahandlePool) GetAttributesBetweenSurfaces(
 	primarySurface RegularSurface,
 	secondarySurface RegularSurface,
 	stepsize float32,
 	attributes []string,
 	interpolation int,
 ) ([][]byte, error) {
-	targetAttributes, err := v.normalizeAttributes(attributes)
+	targetAttributes, err := normalizeAttributes(attributes)
 	if err != nil {
 		return nil, err
 	}
@@ -145,15 +146,18 @@ func (v DSHandle) GetAttributesBetweenSurfaces(
 
 	var primaryIsTop C.int
 
+	var cCtx = C.context_new()
+	defer C.context_free(cCtx)
+
 	cerr := C.align_surfaces(
-		v.context(),
+		cCtx,
 		cPrimarySurface.get(),
 		cSecondarySurface.get(),
 		cAlignedSurface.get(),
 		&primaryIsTop,
 	)
 
-	if err := v.Error(cerr); err != nil {
+	if err := toError(cerr, cCtx); err != nil {
 		return nil, err
 	}
 
@@ -180,7 +184,7 @@ func (v DSHandle) GetAttributesBetweenSurfaces(
 	)
 }
 
-func (v DSHandle) normalizeAttributes(
+func normalizeAttributes(
 	attributes []string,
 ) ([]int, error) {
 	var targetAttributes []int

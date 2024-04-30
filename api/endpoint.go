@@ -169,13 +169,19 @@ func (e *Endpoint) makeDataRequest(
 		}
 	}
 
-	handle, err := core.CreateDSHandle(connections, binaryOperator)
+	// handle, err := core.CreateDSHandle(connections, binaryOperator)
+	// if abortOnError(ctx, err) {
+	// 	return
+	// }
+	// defer handle.Close()
+
+	pool, err := core.NewDatahandlePool(4, connections, binaryOperator)
 	if abortOnError(ctx, err) {
 		return
 	}
-	defer handle.Close()
+	defer pool.Close() //defer and error
 
-	data, metadata, err := request.execute(handle)
+	data, metadata, err := request.execute(pool)
 	if abortOnError(ctx, err) {
 		return
 	}
@@ -186,8 +192,9 @@ func (e *Endpoint) makeDataRequest(
 }
 
 func (request SliceRequest) execute(
-	handle core.DSHandle,
+	pool *core.DatahandlePool,
 ) (data [][]byte, metadata []byte, err error) {
+	handle := pool.Get()
 	axis, err := core.GetAxis(strings.ToLower(request.Direction))
 	if err != nil {
 		return
@@ -212,8 +219,9 @@ func (request SliceRequest) execute(
 }
 
 func (request FenceRequest) execute(
-	handle core.DSHandle,
+	pool *core.DatahandlePool,
 ) (data [][]byte, metadata []byte, err error) {
+	handle := pool.Get()
 	coordinateSystem, err := core.GetCoordinateSystem(
 		strings.ToLower(request.CoordinateSystem),
 	)
@@ -279,7 +287,7 @@ func validateVerticalWindow(above float32, below float32, stepSize float32) erro
 }
 
 func (request AttributeAlongSurfaceRequest) execute(
-	handle core.DSHandle,
+	pool *core.DatahandlePool,
 ) (data [][]byte, metadata []byte, err error) {
 	err = validateVerticalWindow(request.Above, request.Below, request.Stepsize)
 	if err != nil {
@@ -291,12 +299,12 @@ func (request AttributeAlongSurfaceRequest) execute(
 		return
 	}
 
-	metadata, err = handle.GetAttributeMetadata(request.Surface.Values)
+	metadata, err = pool.GetAttributeMetadata(request.Surface.Values)
 	if err != nil {
 		return
 	}
 
-	data, err = handle.GetAttributesAlongSurface(
+	data, err = pool.GetAttributesAlongSurface(
 		request.Surface,
 		request.Above,
 		request.Below,
@@ -312,19 +320,19 @@ func (request AttributeAlongSurfaceRequest) execute(
 }
 
 func (request AttributeBetweenSurfacesRequest) execute(
-	handle core.DSHandle,
+	pool *core.DatahandlePool,
 ) (data [][]byte, metadata []byte, err error) {
 	interpolation, err := core.GetInterpolationMethod(request.Interpolation)
 	if err != nil {
 		return
 	}
 
-	metadata, err = handle.GetAttributeMetadata(request.PrimarySurface.Values)
+	metadata, err = pool.GetAttributeMetadata(request.PrimarySurface.Values)
 	if err != nil {
 		return
 	}
 
-	data, err = handle.GetAttributesBetweenSurfaces(
+	data, err = pool.GetAttributesBetweenSurfaces(
 		request.PrimarySurface,
 		request.SecondarySurface,
 		request.Stepsize,
