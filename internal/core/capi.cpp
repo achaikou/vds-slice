@@ -10,7 +10,9 @@ void response_delete(struct response* buf) {
     if (!buf)
         return;
 
-    delete[] buf->data;
+    if (buf->data) {
+        delete[] buf->data;
+    }
     *buf = response {};
 }
 
