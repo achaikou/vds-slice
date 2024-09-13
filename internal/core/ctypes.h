@@ -3,8 +3,8 @@
 #include <stdlib.h>
 
 struct response {
-    char*         data = nullptr;
-    unsigned long size = 0;
+    char*         data;
+    unsigned long size;
 };
 typedef struct response response;
 
