@@ -119,7 +119,7 @@ protected:
     }
 
     DataHandle* dataHandle;
-    response result;
+    response result = response_init();
 };
 
 TEST_F(EndpointTest, SliceEndpoint) {
