@@ -8,7 +8,7 @@ export const options = {
     randomInlineSliceWait: {
       executor: "constant-vus",
       vus: 1,
-      duration: "50m",
+      duration: "20m",
     },
   },
   thresholds: thresholds(),
@@ -21,7 +21,7 @@ export function setup() {
 
 export default function (metadata) {
   sendRandomSliceRequest(metadata, "Inline");
-  sleep(200);
+  sleep(150);
 }
 
 export function handleSummary(data) {
